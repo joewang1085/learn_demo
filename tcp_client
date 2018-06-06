@@ -1,0 +1,62 @@
+package main
+
+import (
+	"fmt"
+	"io"
+	"net"
+	"os"
+	"strconv"
+	"time"
+)
+
+//golang.org/x/crypto/ssh
+
+var i = 0
+
+func sender(conn net.Conn) {
+	i++
+	words := "hello world! I'm " + strconv.Itoa(i)
+	conn.Write([]byte(words))
+	fmt.Println("发送消息 ： ", words)
+	//	File, err := os.Open(`E:\FtpDemo\src\05092017_111.txt`)
+	File, err := os.Open(`G:\ftp共享文件`)
+	//	dir ,err2 := os.
+	if err != nil {
+		conn.Close()
+		return
+	}
+	io.Copy(conn, File)
+	File.Close()
+	conn.Close()
+}
+
+func main() {
+	server := "127.0.0.1:1024"
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", server)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
+	//	for j := 0; j < 100; j++ {
+	go dailTcp(tcpAddr)
+	time.Sleep(10000 * time.Second)
+	//	}
+}
+
+func dailTcp(tcpAddr *net.TCPAddr) {
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	defer conn.Close()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
+	buffer := make([]byte, 2048)
+	//	for {
+	sender(conn)
+	_, err_read := conn.Read(buffer)
+	if err_read != nil {
+		return
+	}
+	fmt.Println("收到消息 : ", string(buffer))
+	//	}
+}
