@@ -1,0 +1,71 @@
+package main
+
+import (
+	"fmt"
+	//	"log"
+	"io"
+	"net"
+	"os"
+	"strconv"
+)
+
+var i = 0
+
+func main() {
+
+	//建立socket，监听端口
+	netListen, err := net.Listen("tcp", "localhost:1024")
+	CheckError(err)
+	defer netListen.Close()
+	for {
+		conn, err := netListen.Accept() //建立连接
+		i++
+		fmt.Println("建立连接 :", i)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		go handleConnection(conn) //用一个携程处理一个conn
+	}
+}
+
+//处理连接
+func handleConnection(conn net.Conn) {
+	buffer := make([]byte, 2048)
+	defer close(conn)
+	for {
+		File, err := os.Create(`E:\SockerServer\111\`)
+		if err != nil {
+			fmt.Println(err)
+			conn.Close()
+			return
+		}
+		io.Copy(File, conn)
+		File.Close()
+		conn.Close()
+		//		n, err := conn.Read(buffer)
+		//		fmt.Println("收到数据 :", string(buffer))
+		//		if err != nil {
+		//			return
+		//		}
+		//		str := string("收到消息 : " + string(buffer))
+		//		buffer = strconv.AppendQuoteToASCII(buffer, ": 收到消息")
+		buffer = strconv.AppendInt([]byte("收到文件"), 10, i)
+		_, err_write := conn.Write(buffer)
+		if err_write != nil {
+			return
+		}
+	}
+}
+
+func close(conn net.Conn) {
+	conn.Close()
+	i--
+}
+
+func CheckError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
+}
