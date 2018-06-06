@@ -1,0 +1,46 @@
+/*
+输入一个整数，表示二进制的位数，输出该位数所有没有相邻两个1的二进制数
+如：输入3,输出 “000，001,010,100,101”
+*/
+package main
+
+import "fmt"
+
+func main() {
+	s := Byte_print(3, false)
+	fmt.Println(fmt.Sprintf("一共有%d个满足：", len(s)))
+	for k, v := range s {
+		fmt.Print(k)
+		fmt.Println("  :  ", v)
+	}
+}
+
+func Byte_print(num int, isOne bool) []string {
+	s := []string{}
+	if num < 1 {
+		return nil
+	}
+	if num == 1 { //递归出口的设计
+		if isOne {
+			return []string{"0"}
+		} else {
+			return []string{"0", "1"}
+		}
+	}
+	if isOne {
+		s1 := Byte_print(num-1, false)
+		for _, each := range s1 {
+			s = append(s, "0"+each)
+		}
+	} else {
+		s1 := Byte_print(num-1, false)
+		s2 := Byte_print(num-1, true)
+		for _, each1 := range s1 {
+			s = append(s, "0"+each1)
+		}
+		for _, each2 := range s2 {
+			s = append(s, "1"+each2)
+		}
+	}
+	return s
+}
